@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title *ngIf="isNew">New Drink Creator</ion-title>
+    <ion-title *ngIf="!isNew">Drink Editor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content *ngIf="drink">
+    <app-drink-graphic [drink]="drink"></app-drink-graphic>
+
+    <form (ngSubmit)="logForm()">
+      <!-- [readonly] is added to all inputs since [(ngModel)] binds the input, changes by barista also reflects in frontend but they 
+      cannot post or patch in backend. So fronend and backend are in non sync in such cases. So disabling the features they can't edit will work
+      For input [readonly] and for buttons [disabled] will work properly
+      -->
+      <ion-item>
+        <ion-label>Drink Title</ion-label>
+        <ion-input type="text" [readonly]="!(auth.can('patch:drinks') || auth.can('post:drinks'))" [(ngModel)]="drink.title" name="title"></ion-input>
+      </ion-item>
+
+      <ion-item *ngFor="let ingredient of drink.recipe; let i = index;  trackBy: customTrackBy">
+        <ion-label>Ingredient Name</ion-label>
+        <ion-input [readonly]="!(auth.can('patch:drinks') || auth.can('post:drinks'))" [(ngModel)]="drink.recipe[i].name" [name]="'Ingredient Title'+i"></ion-input>
+
+        <ion-label>Number of Parts</ion-label>
+        <ion-input [readonly]="!(auth.can('patch:drinks') || auth.can('post:drinks'))" type="number" [(ngModel)]="drink.recipe[i].parts" [name]="'Ingredient Parts'+i"></ion-input>
+
+        <ion-label>Color</ion-label>
+        <ion-input [readonly]="!(auth.can('patch:drinks') || auth.can('post:drinks'))" type="text" [(ngModel)]="drink.recipe[i].color" [name]="'Ingredient Color'+i"></ion-input>
+
+        <!--[disabled] is changed accordingly as if any one of the condition is met, it will be disabled-->
+        <ion-button (click)="removeIngredient(i)" [disabled]="(!(auth.can('patch:drinks') || auth.can('post:drinks'))) || (i==0 && drink.recipe.length==1)">Remove</ion-button><br />
+        <ion-button (click)="addIngredient(i)" [disabled]="(!(auth.can('patch:drinks') || auth.can('post:drinks'))) || (drink.recipe.length==5)">ADD</ion-button><br />
+
+      </ion-item>
+
+      <ion-button 
+        [disabled]="!auth.can('delete:drinks')"
+        (click)="deleteClicked()">Delete</ion-button><br />
+      <ion-button (click)="closeModal()">Cancel</ion-button>
+
+      <!-- !(auth.can('patch:drinks') || auth.can('post:drinks')) because if any one permission is there disabled is false-->
+ 
+      <ion-button 
+        [disabled]="!(auth.can('patch:drinks') || auth.can('post:drinks'))" 
+        (click)="saveClicked()">Save</ion-button>
+
+    </form>
+</ion-content>
